@@ -1,0 +1,65 @@
+import django.db.models.deletion
+import uuid
+from decimal import Decimal
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Order',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('customer_id', models.CharField(db_index=True, max_length=64)),
+                ('customer_name', models.CharField(max_length=255)),
+                ('customer_email', models.EmailField(max_length=254)),
+                ('shipping_address', models.TextField()),
+                ('status', models.CharField(choices=[('CREATED', 'Created'), ('ASSIGNED', 'Assigned'), ('PROCESSING', 'Processing'), ('COMPLETED', 'Completed'), ('CANCELLED', 'Cancelled')], db_index=True, default='CREATED', max_length=32)),
+                ('assigned_agent_id', models.CharField(blank=True, db_index=True, max_length=64, null=True)),
+                ('assigned_agent_name', models.CharField(blank=True, max_length=255, null=True)),
+                ('total_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
+                ('notes', models.TextField(blank=True, default='')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'ordering': ['-created_at'],
+            },
+        ),
+        migrations.CreateModel(
+            name='OrderActivity',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('action', models.CharField(max_length=64)),
+                ('actor_id', models.CharField(max_length=64)),
+                ('actor_type', models.CharField(choices=[('CUSTOMER', 'Customer'), ('AGENT', 'Agent'), ('SYSTEM', 'System')], default='SYSTEM', max_length=32)),
+                ('from_status', models.CharField(blank=True, max_length=32, null=True)),
+                ('to_status', models.CharField(blank=True, max_length=32, null=True)),
+                ('notes', models.TextField(blank=True, default='')),
+                ('timestamp', models.DateTimeField(auto_now_add=True)),
+                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='activities', to='orders.order')),
+            ],
+            options={
+                'ordering': ['timestamp'],
+            },
+        ),
+        migrations.CreateModel(
+            name='OrderItem',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('item_id', models.CharField(max_length=64)),
+                ('name', models.CharField(max_length=255)),
+                ('quantity', models.PositiveIntegerField(default=1)),
+                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('subtotal', models.DecimalField(decimal_places=2, max_digits=12)),
+                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order')),
+            ],
+        ),
+    ]
+

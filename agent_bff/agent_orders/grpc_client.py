@@ -5,16 +5,16 @@ from google.protobuf.json_format import MessageToDict
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from generated import order_pb2, order_pb2_grpc
+from generated import agent_order_pb2, agent_order_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
 STATUS_STR_TO_PROTO = {
-    'CREATED': order_pb2.ORDER_STATUS_CREATED,
-    'ASSIGNED': order_pb2.ORDER_STATUS_ASSIGNED,
-    'PROCESSING': order_pb2.ORDER_STATUS_PROCESSING,
-    'COMPLETED': order_pb2.ORDER_STATUS_COMPLETED,
-    'CANCELLED': order_pb2.ORDER_STATUS_CANCELLED,
+    'CREATED': agent_order_pb2.ORDER_STATUS_CREATED,
+    'ASSIGNED': agent_order_pb2.ORDER_STATUS_ASSIGNED,
+    'PROCESSING': agent_order_pb2.ORDER_STATUS_PROCESSING,
+    'COMPLETED': agent_order_pb2.ORDER_STATUS_COMPLETED,
+    'CANCELLED': agent_order_pb2.ORDER_STATUS_CANCELLED,
 }
 
 
@@ -22,7 +22,7 @@ class GrpcClientError(APIException):
     """Translates gRPC RpcError into clean DRF HTTP response."""
     def __init__(self, rpc_error: grpc.RpcError):
         code = rpc_error.code()
-        details = rpc_error.details() or "An error occurred in Order Microservice"
+        details = rpc_error.details() or "An error occurred in Agent Order Microservice"
         
         status_map = {
             grpc.StatusCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
@@ -42,10 +42,10 @@ class GrpcClientError(APIException):
         super().__init__(self.detail)
 
 
-def get_order_stub() -> order_pb2_grpc.OrderServiceStub:
-    """Creates a gRPC channel and returns an OrderServiceStub."""
-    channel = grpc.insecure_channel(settings.ORDER_GRPC_HOST)
-    return order_pb2_grpc.OrderServiceStub(channel)
+def get_order_stub() -> agent_order_pb2_grpc.AgentOrderServiceStub:
+    """Creates a gRPC channel and returns an AgentOrderServiceStub."""
+    channel = grpc.insecure_channel(settings.AGENT_ORDER_GRPC_HOST)
+    return agent_order_pb2_grpc.AgentOrderServiceStub(channel)
 
 
 def proto_to_dict(proto_message) -> dict:

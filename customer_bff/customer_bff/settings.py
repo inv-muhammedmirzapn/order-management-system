@@ -47,6 +47,7 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
 
-# Order Management gRPC Service Endpoint
-ORDER_GRPC_HOST = os.getenv('ORDER_GRPC_HOST', 'localhost:50051')
+# Customer Order Management gRPC Service Endpoint
+CUSTOMER_ORDER_GRPC_HOST = os.getenv('CUSTOMER_ORDER_GRPC_HOST', os.getenv('ORDER_GRPC_HOST', 'localhost:50051'))
+
 

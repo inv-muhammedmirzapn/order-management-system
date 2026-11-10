@@ -5,7 +5,7 @@ from google.protobuf.json_format import MessageToDict
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from generated import order_pb2, order_pb2_grpc
+from generated import customer_order_pb2, customer_order_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class GrpcClientError(APIException):
     """Translates gRPC RpcError into clean DRF HTTP response."""
     def __init__(self, rpc_error: grpc.RpcError):
         code = rpc_error.code()
-        details = rpc_error.details() or "An error occurred in Order Microservice"
+        details = rpc_error.details() or "An error occurred in Customer Order Microservice"
         
         status_map = {
             grpc.StatusCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
@@ -34,10 +34,10 @@ class GrpcClientError(APIException):
         super().__init__(self.detail)
 
 
-def get_order_stub() -> order_pb2_grpc.OrderServiceStub:
-    """Creates a gRPC channel and returns an OrderServiceStub."""
-    channel = grpc.insecure_channel(settings.ORDER_GRPC_HOST)
-    return order_pb2_grpc.OrderServiceStub(channel)
+def get_order_stub() -> customer_order_pb2_grpc.CustomerOrderServiceStub:
+    """Creates a gRPC channel and returns a CustomerOrderServiceStub."""
+    channel = grpc.insecure_channel(settings.CUSTOMER_ORDER_GRPC_HOST)
+    return customer_order_pb2_grpc.CustomerOrderServiceStub(channel)
 
 
 def proto_to_dict(proto_message) -> dict:

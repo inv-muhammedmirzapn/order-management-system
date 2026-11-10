@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from generated import order_pb2
+from generated import agent_order_pb2
 from .grpc_client import (
     get_order_stub,
     proto_to_dict,
@@ -30,10 +30,10 @@ class OrderListView(APIView):
         page = int(request.query_params.get('page', 1))
         page_size = int(request.query_params.get('page_size', 20))
 
-        status_enum = STATUS_STR_TO_PROTO.get(status_param, order_pb2.ORDER_STATUS_UNSPECIFIED)
+        status_enum = STATUS_STR_TO_PROTO.get(status_param, agent_order_pb2.ORDER_STATUS_UNSPECIFIED)
 
         stub = get_order_stub()
-        grpc_request = order_pb2.ListOrdersRequest(
+        grpc_request = agent_order_pb2.ListOrdersRequest(
             status_filter=status_enum,
             customer_id_filter=customer_id,
             agent_id_filter=agent_id,
@@ -62,7 +62,7 @@ class OrderDetailView(APIView):
     """
     def get(self, request, order_id):
         stub = get_order_stub()
-        grpc_request = order_pb2.GetOrderRequest(order_id=order_id)
+        grpc_request = agent_order_pb2.GetOrderRequest(order_id=order_id)
 
         try:
             grpc_response = stub.GetOrder(grpc_request)
@@ -84,7 +84,7 @@ class AssignOrderView(APIView):
         data = serializer.validated_data
 
         stub = get_order_stub()
-        grpc_request = order_pb2.AssignOrderRequest(
+        grpc_request = agent_order_pb2.AssignOrderRequest(
             order_id=order_id,
             agent_id=data["agent_id"],
             agent_name=data.get("agent_name", ""),
@@ -115,7 +115,7 @@ class StartProcessingView(APIView):
         data = serializer.validated_data
 
         stub = get_order_stub()
-        grpc_request = order_pb2.StartOrderProcessingRequest(
+        grpc_request = agent_order_pb2.StartOrderProcessingRequest(
             order_id=order_id,
             agent_id=data.get("agent_id", ""),
             notes=data.get("notes", ""),
@@ -146,11 +146,11 @@ class UpdateStatusView(APIView):
         new_status_enum = STATUS_STR_TO_PROTO[data["new_status"]]
 
         stub = get_order_stub()
-        grpc_request = order_pb2.UpdateOrderStatusRequest(
+        grpc_request = agent_order_pb2.UpdateOrderStatusRequest(
             order_id=order_id,
             new_status=new_status_enum,
             actor_id=data["actor_id"],
-            actor_type=order_pb2.ACTOR_TYPE_AGENT,
+            actor_type=agent_order_pb2.ACTOR_TYPE_AGENT,
             notes=data.get("notes", ""),
         )
 
@@ -177,7 +177,7 @@ class CompleteOrderView(APIView):
         data = serializer.validated_data
 
         stub = get_order_stub()
-        grpc_request = order_pb2.CompleteOrderRequest(
+        grpc_request = agent_order_pb2.CompleteOrderRequest(
             order_id=order_id,
             agent_id=data.get("agent_id", ""),
             notes=data.get("notes", ""),
@@ -202,7 +202,7 @@ class OrderActivitiesView(APIView):
     """
     def get(self, request, order_id):
         stub = get_order_stub()
-        grpc_request = order_pb2.GetOrderActivitiesRequest(order_id=order_id)
+        grpc_request = agent_order_pb2.GetOrderActivitiesRequest(order_id=order_id)
 
         try:
             grpc_response = stub.GetOrderActivities(grpc_request)

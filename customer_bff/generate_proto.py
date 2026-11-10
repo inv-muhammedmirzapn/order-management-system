@@ -38,15 +38,15 @@ def generate_for_target(output_dir: Path, proto_file: Path, proto_include: str):
         "_pkg_dir = str(Path(__file__).resolve().parent)\n"
         "if _pkg_dir not in sys.path:\n"
         "    sys.path.insert(0, _pkg_dir)\n\n"
-        "from . import order_pb2\n"
-        "from . import order_pb2_grpc\n\n"
-        '__all__ = ["order_pb2", "order_pb2_grpc"]\n'
+        "from . import customer_order_pb2\n"
+        "from . import customer_order_pb2_grpc\n\n"
+        '__all__ = ["customer_order_pb2", "customer_order_pb2_grpc"]\n'
     )
     init_file.write_text(init_content)
 
 
 def main():
-    proto_file = PROTO_DIR / "order.proto"
+    proto_file = PROTO_DIR / "customer_order.proto"
     if not proto_file.exists():
         print(f"Error: {proto_file} not found!", file=sys.stderr)
         sys.exit(1)
@@ -55,11 +55,10 @@ def main():
     print(f"==> Compiling {proto_file.name} for Customer BFF...")
     generate_for_target(GENERATED_DIR, proto_file, proto_include)
     print(f"✔ Generated in: {GENERATED_DIR.relative_to(ROOT_DIR)}/")
-    print(f"   • {GENERATED_DIR.relative_to(ROOT_DIR)}/order_pb2.py")
-    print(f"   • {GENERATED_DIR.relative_to(ROOT_DIR)}/order_pb2_grpc.py")
+    print(f"   • {GENERATED_DIR.relative_to(ROOT_DIR)}/customer_order_pb2.py")
+    print(f"   • {GENERATED_DIR.relative_to(ROOT_DIR)}/customer_order_pb2_grpc.py")
     print("\n==> Proto generation completed successfully!")
 
 
 if __name__ == "__main__":
     main()
-

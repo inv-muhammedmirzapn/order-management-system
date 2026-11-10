@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from generated import order_pb2
+from generated import customer_order_pb2
 from .grpc_client import get_order_stub, proto_to_dict, GrpcClientError
 from .serializers import CreateOrderRequestSerializer, CancelOrderRequestSerializer
 
@@ -19,7 +19,7 @@ class CustomerOrderListCreateView(APIView):
 
         stub = get_order_stub()
         grpc_items = [
-            order_pb2.OrderItemInput(
+            customer_order_pb2.OrderItemInput(
                 item_id=item["item_id"],
                 name=item["name"],
                 quantity=item["quantity"],
@@ -28,7 +28,7 @@ class CustomerOrderListCreateView(APIView):
             for item in data["items"]
         ]
 
-        grpc_request = order_pb2.CreateOrderRequest(
+        grpc_request = customer_order_pb2.CreateOrderRequest(
             customer_id=data["customer_id"],
             customer_name=data["customer_name"],
             customer_email=data["customer_email"],
@@ -56,7 +56,7 @@ class CustomerOrderDetailView(APIView):
     """
     def get(self, request, order_id):
         stub = get_order_stub()
-        grpc_request = order_pb2.GetOrderRequest(order_id=order_id)
+        grpc_request = customer_order_pb2.GetOrderRequest(order_id=order_id)
 
         try:
             grpc_response = stub.GetOrder(grpc_request)
@@ -80,10 +80,10 @@ class CustomerOrderCancelView(APIView):
         data = serializer.validated_data
 
         stub = get_order_stub()
-        grpc_request = order_pb2.CancelOrderRequest(
+        grpc_request = customer_order_pb2.CancelOrderRequest(
             order_id=order_id,
             actor_id=data["actor_id"],
-            actor_type=order_pb2.ACTOR_TYPE_CUSTOMER,
+            actor_type=customer_order_pb2.ACTOR_TYPE_CUSTOMER,
             reason=data.get("reason", ""),
         )
 
