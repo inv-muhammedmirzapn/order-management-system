@@ -1,6 +1,15 @@
 from google.protobuf.timestamp_pb2 import Timestamp
-from generated import agent_order_pb2
+from generated import agent_order_pb2, customer_order_pb2
 from .models import Order, OrderItem, OrderActivity, OrderStatusChoices, ActorTypeChoices
+
+# Map internal model status to customer_order_pb2.OrderStatus enum
+MODEL_TO_CUSTOMER_PROTO_STATUS = {
+    OrderStatusChoices.CREATED: customer_order_pb2.ORDER_STATUS_CREATED,
+    OrderStatusChoices.ASSIGNED: customer_order_pb2.ORDER_STATUS_ASSIGNED,
+    OrderStatusChoices.PROCESSING: customer_order_pb2.ORDER_STATUS_PROCESSING,
+    OrderStatusChoices.COMPLETED: customer_order_pb2.ORDER_STATUS_COMPLETED,
+    OrderStatusChoices.CANCELLED: customer_order_pb2.ORDER_STATUS_CANCELLED,
+}
 
 STATUS_MODEL_TO_PROTO = {
     OrderStatusChoices.CREATED: agent_order_pb2.ORDER_STATUS_CREATED,

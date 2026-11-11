@@ -13,18 +13,10 @@ from .serializers import (
     order_activity_to_proto,
     STATUS_PROTO_TO_MODEL,
     ACTOR_PROTO_TO_MODEL,
+    MODEL_TO_CUSTOMER_PROTO_STATUS,
 )
 
 logger = logging.getLogger(__name__)
-
-# Map internal model status to customer_order_pb2.OrderStatus enum
-MODEL_TO_CUSTOMER_PROTO_STATUS = {
-    OrderStatusChoices.CREATED: customer_order_pb2.ORDER_STATUS_CREATED,
-    OrderStatusChoices.ASSIGNED: customer_order_pb2.ORDER_STATUS_ASSIGNED,
-    OrderStatusChoices.PROCESSING: customer_order_pb2.ORDER_STATUS_PROCESSING,
-    OrderStatusChoices.COMPLETED: customer_order_pb2.ORDER_STATUS_COMPLETED,
-    OrderStatusChoices.CANCELLED: customer_order_pb2.ORDER_STATUS_CANCELLED,
-}
 
 
 def handle_grpc_exceptions(func):

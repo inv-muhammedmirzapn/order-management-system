@@ -16,6 +16,7 @@ class CreateOrderRequestSerializer(serializers.Serializer):
     shipping_address = serializers.CharField(required=True)
     items = OrderItemInputSerializer(many=True, required=True, allow_empty=False)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+    idempotency_key = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class CancelOrderRequestSerializer(serializers.Serializer):

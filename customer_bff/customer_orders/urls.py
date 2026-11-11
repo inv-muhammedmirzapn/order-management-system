@@ -6,7 +6,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('', CustomerOrderListCreateView.as_view(), name='customer-order-list-create'),
+    path('create/', CustomerOrderListCreateView.as_view(), name='customer-order-create-alias'),
     path('<str:order_id>/', CustomerOrderDetailView.as_view(), name='customer-order-detail'),
     path('<str:order_id>/cancel/', CustomerOrderCancelView.as_view(), name='customer-order-cancel'),
 ]

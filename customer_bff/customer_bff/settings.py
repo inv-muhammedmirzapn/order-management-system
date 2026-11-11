@@ -28,6 +28,13 @@ ROOT_URLCONF = 'customer_bff.urls'
 # The BFF is a stateless gRPC gateway and does not use a database
 DATABASES = {}
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'customer-bff-cache',
+    }
+}
+
 REST_FRAMEWORK = {
     'UNAUTHENTICATED_USER': None,
     'DEFAULT_AUTHENTICATION_CLASSES': [],
