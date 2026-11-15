@@ -1,0 +1,90 @@
+services:
+  customer_order_service:
+    build: ./customer_order_service
+    container_name: customer_order_service
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      SECRET_KEY: ${CUSTOMER_SERVICE_SECRET_KEY:-django-customer-order-service-secret-key-12345678}
+      DB_NAME: ${CUSTOMER_DB_NAME:-customer_order_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-12345678}
+      DB_HOST: ${DB_HOST:-127.0.0.1}
+      DB_PORT: ${DB_PORT:-3306}
+      CUSTOMER_ORDER_GRPC_PORT: ${CUSTOMER_ORDER_GRPC_PORT:-50051}
+      AGENT_ORDER_GRPC_HOST: 127.0.0.1:${AGENT_ORDER_GRPC_PORT:-50052}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, socket; s = socket.create_connection(('127.0.0.1', int(os.environ['CUSTOMER_ORDER_GRPC_PORT'])), 2); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  agent_order_service:
+    build: ./agent_order_service
+    container_name: agent_order_service
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      SECRET_KEY: ${AGENT_SERVICE_SECRET_KEY:-django-agent-order-service-secret-key-87654321}
+      DB_NAME: ${AGENT_DB_NAME:-agent_order_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-12345678}
+      DB_HOST: ${DB_HOST:-127.0.0.1}
+      DB_PORT: ${DB_PORT:-3306}
+      AGENT_ORDER_GRPC_PORT: ${AGENT_ORDER_GRPC_PORT:-50052}
+      CUSTOMER_ORDER_GRPC_HOST: 127.0.0.1:${CUSTOMER_ORDER_GRPC_PORT:-50051}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, socket; s = socket.create_connection(('127.0.0.1', int(os.environ['AGENT_ORDER_GRPC_PORT'])), 2); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  customer_bff:
+    build: ./customer_bff
+    container_name: customer_bff
+    restart: unless-stopped
+    network_mode: host
+    command: ["gunicorn", "customer_bff.wsgi:application", "--bind", "0.0.0.0:${CUSTOMER_BFF_PORT:-8001}", "--workers", "1", "--threads", "4"]
+    environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      SECRET_KEY: ${CUSTOMER_BFF_SECRET_KEY:-customer-bff-insecure-key-for-development-only-123}
+      CUSTOMER_BFF_PORT: ${CUSTOMER_BFF_PORT:-8001}
+      CUSTOMER_ORDER_GRPC_HOST: 127.0.0.1:${CUSTOMER_ORDER_GRPC_PORT:-50051}
+    depends_on:
+      customer_order_service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.environ['CUSTOMER_BFF_PORT']}/health/\", timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  agent_bff:
+    build: ./agent_bff
+    container_name: agent_bff
+    restart: unless-stopped
+    network_mode: host
+    command: ["gunicorn", "agent_bff.wsgi:application", "--bind", "0.0.0.0:${AGENT_BFF_PORT:-8002}", "--workers", "2", "--threads", "4"]
+    environment:
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      SECRET_KEY: ${AGENT_BFF_SECRET_KEY:-agent-bff-insecure-key-for-operations-development-456}
+      AGENT_BFF_PORT: ${AGENT_BFF_PORT:-8002}
+      AGENT_ORDER_GRPC_HOST: 127.0.0.1:${AGENT_ORDER_GRPC_PORT:-50052}
+    depends_on:
+      agent_order_service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.environ['AGENT_BFF_PORT']}/health/\", timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
