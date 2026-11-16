@@ -1,4 +1,6 @@
 import logging
+import atexit
+from typing import Optional
 import grpc
 from django.conf import settings
 from google.protobuf.json_format import MessageToDict
@@ -34,10 +36,39 @@ class GrpcClientError(APIException):
         super().__init__(self.detail)
 
 
+_channel: Optional[grpc.Channel] = None
+_stub: Optional[customer_order_pb2_grpc.CustomerOrderServiceStub] = None
+
+
+def get_channel() -> grpc.Channel:
+    """Returns a singleton gRPC channel to the Customer Order Microservice."""
+    global _channel
+    if _channel is None:
+        _channel = grpc.insecure_channel(settings.CUSTOMER_ORDER_GRPC_HOST)
+    return _channel
+
+
 def get_order_stub() -> customer_order_pb2_grpc.CustomerOrderServiceStub:
-    """Creates a gRPC channel and returns a CustomerOrderServiceStub."""
-    channel = grpc.insecure_channel(settings.CUSTOMER_ORDER_GRPC_HOST)
-    return customer_order_pb2_grpc.CustomerOrderServiceStub(channel)
+    """Returns a singleton CustomerOrderServiceStub reusing the active channel."""
+    global _stub
+    if _stub is None:
+        _stub = customer_order_pb2_grpc.CustomerOrderServiceStub(get_channel())
+    return _stub
+
+
+def close_channel():
+    """Closes the gRPC channel and resets the client."""
+    global _channel, _stub
+    if _channel is not None:
+        try:
+            _channel.close()
+        except Exception:
+            pass
+        _channel = None
+        _stub = None
+
+
+atexit.register(close_channel)
 
 
 def proto_to_dict(proto_message) -> dict:
