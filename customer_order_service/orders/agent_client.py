@@ -1,14 +1,45 @@
 import logging
+import atexit
+from typing import Optional
 import grpc
 from django.conf import settings
 from generated import agent_order_pb2, agent_order_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
+_channel: Optional[grpc.Channel] = None
+_stub: Optional[agent_order_pb2_grpc.AgentOrderServiceStub] = None
+
+
+def get_channel() -> grpc.Channel:
+    """Returns a singleton gRPC channel to the Agent Order Microservice."""
+    global _channel
+    if _channel is None:
+        _channel = grpc.insecure_channel(settings.AGENT_ORDER_GRPC_HOST)
+    return _channel
+
 
 def get_agent_order_stub() -> agent_order_pb2_grpc.AgentOrderServiceStub:
-    channel = grpc.insecure_channel(settings.AGENT_ORDER_GRPC_HOST)
-    return agent_order_pb2_grpc.AgentOrderServiceStub(channel)
+    """Returns a singleton AgentOrderServiceStub reusing the active channel."""
+    global _stub
+    if _stub is None:
+        _stub = agent_order_pb2_grpc.AgentOrderServiceStub(get_channel())
+    return _stub
+
+
+def close_channel():
+    """Closes the gRPC channel and resets the client."""
+    global _channel, _stub
+    if _channel is not None:
+        try:
+            _channel.close()
+        except Exception:
+            pass
+        _channel = None
+        _stub = None
+
+
+atexit.register(close_channel)
 
 
 def notify_agent_order_created(order):
